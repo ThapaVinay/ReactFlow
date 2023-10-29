@@ -16,6 +16,7 @@ const initialNodes = [
         type: 'input-output-node',
         data: { label: 'Node 0' },
         position: { x: 0, y: 50 },
+        // style: {height:"50px", width:"80px"}
     },
 ];
 
