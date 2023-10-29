@@ -5,6 +5,9 @@ import ReactFlow, {
     addEdge,
     useReactFlow,
     ReactFlowProvider,
+    getIncomers,
+    getOutgoers,
+    getConnectedEdges,
 } from 'reactflow';
 
 import 'reactflow/dist/style.css';
@@ -54,20 +57,42 @@ const AddNodeOnEdgeDrop = () => {
                 };
 
                 setNodes((nds) => nds.concat(newNode));
-                setEdges((eds) => eds.concat({ id, source: connectingNodeId.current, target: id }));
+                setEdges((eds) => eds.concat({ id, source: connectingNodeId.current, target: id, label:"hell" }));
             }
         },
         [project]
     );
 
+    const onNodesDelete = useCallback(
+        (deleted) => {
+            setEdges(
+                deleted.reduce((acc, node) => {
+                    const incomers = getIncomers(node, nodes, edges);
+                    const outgoers = getOutgoers(node, nodes, edges);
+                    const connectedEdges = getConnectedEdges([node], edges);
+
+                    const remainingEdges = acc.filter((edge) => !connectedEdges.includes(edge));
+
+                    const createdEdges = incomers.flatMap(({ id: source }) =>
+                        outgoers.map(({ id: target }) => ({ id: `${source}->${target}`, source, target }))
+                    );
+
+                    return [...remainingEdges, ...createdEdges];
+                }, edges)
+            );
+        },
+        [nodes, edges]
+    );
+
     return (
-        <div className="wrapper " style={{width:"100vw", height:"100vh"}}  ref={reactFlowWrapper}>
+        <div className="wrapper " style={{ width: "100vw", height: "100vh" }} ref={reactFlowWrapper}>
             <ReactFlow
                 nodes={nodes}
                 edges={edges}
                 onNodesChange={onNodesChange}
                 onEdgesChange={onEdgesChange}
                 onConnect={onConnect}
+                onNodesDelete={onNodesDelete}
                 onConnectStart={onConnectStart}
                 onConnectEnd={onConnectEnd}
                 fitView
