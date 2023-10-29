@@ -16,7 +16,6 @@ import 'reactflow/dist/style.css';
 const initialNodes = [
     {
         id: '0',
-        type: 'input-output-node',
         data: { label: 'Node 0' },
         position: { x: 0, y: 50 },
         // style: {height:"50px", width:"80px"}
@@ -37,7 +36,18 @@ const AddNodeOnEdgeDrop = () => {
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
     const { project } = useReactFlow();
-    const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+    // const onConnect = useCallback((params) => setEdges((eds) => addEdge(params, eds)), []);
+
+    const onConnect = useCallback(
+        (params) => {
+            const redEdge = {
+                ...params,
+                style: { stroke: 'red', strokeWidth: 1 },
+            };
+            setEdges((els) => addEdge(redEdge, els));
+        },
+        []
+    );
 
     const onConnectStart = useCallback((_, { nodeId }) => {
         connectingNodeId.current = nodeId;
@@ -54,10 +64,12 @@ const AddNodeOnEdgeDrop = () => {
                     id,
                     position: project({ x: event.clientX - left - 75, y: event.clientY - top }),
                     data: { label: `Node ${id}` },
+                    // targetPosition: 'top',
+                    // sourcePosition: 'bottom',
                 };
 
                 setNodes((nds) => nds.concat(newNode));
-                setEdges((eds) => eds.concat({ id, source: connectingNodeId.current, target: id, label:"hell" }));
+                setEdges((eds) => eds.concat({ id, source: connectingNodeId.current, target: id, style: { stroke: "red", strokeWidth: 1 } }));
             }
         },
         [project]
@@ -97,6 +109,7 @@ const AddNodeOnEdgeDrop = () => {
                 onConnectEnd={onConnectEnd}
                 fitView
                 fitViewOptions={fitViewOptions}
+
             />
         </div>
     );
